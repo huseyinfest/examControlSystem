@@ -1,0 +1,156 @@
+***
+Bu kod Hüseyin Eren tarafından yazılmıştır.
+***
+
+
+
+
+
+Bu C programı, öğrencilerin sırayla bir sınav için çağrılacağı bir kuyruk yapısını simüle etmektedir.
+Program, temel olarak Queue (kuyruk) ve Student (öğrenci) yapıları kullanarak öğrencilerin isimlerini sıraya alıp, ilk sıradaki öğrenciyi çağırarak sınavlarını yapmalarını sağlar.
+Şimdi bu kodu baştan sona detaylıca inceleyelim.
+Kodu Bölüm Bölüm İnceleme:
+1. Kütüphanelerin Dahil Edilmesi:
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+    <stdio.h>: Bu kütüphane, giriş/çıkış işlemleri için gereklidir. printf ve scanf gibi fonksiyonlar bu kütüphaneden gelir.
+    <stdlib.h>: Dinamik bellek yönetimi için gereklidir. malloc ve free fonksiyonları bu kütüphaneden gelir.
+    <string.h>: Dizi işlemleri için gereklidir. strcpy gibi fonksiyonlar bu kütüphaneden gelir.
+
+2. Student (Öğrenci) Yapısı:
+
+typedef struct Student {
+    char name[50];
+    struct Student* next;
+} Student;
+
+    Bu yapı, bir öğrencinin bilgilerini tutar.
+    char name[50]: Öğrencinin adını tutan karakter dizisi (string). Maksimum 50 karakter uzunluğunda.
+    struct Student* next: Bu, bir Student nesnesinin, sıradaki diğer öğrenciye işaret etmesini sağlayan bir işaretçi. Yani bu alan, bir öğrenci kuyruk yapısındaki bir sonraki öğrenciye işaret eder.
+
+3. Queue (Kuyruk) Yapısı:
+
+typedef struct Queue {
+    Student* front;
+    Student* rear;
+} Queue;
+
+    Kuyruk yapısı, öğrencilerin sınav için sıraya girdiği yapıyı temsil eder.
+    Student* front: Kuyruğun önündeki öğrenciyi tutan işaretçi.
+    Student* rear: Kuyruğun sonundaki öğrenciyi tutan işaretçi.
+
+4. createQueue Fonksiyonu:
+
+Queue* createQueue() {
+    Queue* q = (Queue*)malloc(sizeof(Queue));
+    q->front = q->rear = NULL;
+    return q;
+}
+
+    Bu fonksiyon, yeni bir kuyruk (Queue) nesnesi oluşturur.
+    malloc(sizeof(Queue)): Dinamik bellek kullanılarak bir Queue nesnesi oluşturulur.
+    q->front = q->rear = NULL;: Kuyruğun başı (front) ve sonu (rear) başlangıçta NULL olarak ayarlanır, çünkü kuyruk boş.
+
+5. enqueue Fonksiyonu:
+
+void enqueue(Queue* q, char* name) {
+    Student* temp = (Student*)malloc(sizeof(Student));
+    strcpy(temp->name, name);
+    temp->next = NULL;
+    if (q->rear == NULL) {
+        q->front = q->rear = temp;
+        return;
+    }
+    q->rear->next = temp;
+    q->rear = temp;
+}
+
+    Bu fonksiyon, yeni bir öğrenci ismi alır ve bu öğrenciyi kuyruğa ekler.
+    Student* temp = (Student*)malloc(sizeof(Student));: Yeni bir öğrenci (Student) için dinamik bellek ayrılır.
+    strcpy(temp->name, name);: name parametresinde verilen ismi, temp nesnesine kopyalar.
+    temp->next = NULL;: Bu öğrenci, kuyruğun sonundadır, bu yüzden next işaretçisi NULL yapılır.
+    if (q->rear == NULL): Eğer kuyruk boşsa (başlangıçta), hem front hem de rear bu yeni öğrenciye işaret eder.
+    q->rear->next = temp;: Eğer kuyrukta zaten öğrenciler varsa, son öğrencinin next işaretçisi yeni öğrenciye yönlendirilir.
+    q->rear = temp;: Sonrasında kuyruk sonu (rear), yeni öğrenciye yönlendirilir.
+
+6. dequeue Fonksiyonu:
+
+void dequeue(Queue* q) {
+    if (q->front == NULL) {
+        printf("Queue is empty\n");
+        return;
+    }
+    Student* temp = q->front;
+    q->front = q->front->next;
+    if (q->front == NULL) {
+        q->rear = NULL;
+    }
+    printf("Student %s has taken the exam\n", temp->name);
+    free(temp);
+}
+
+    Bu fonksiyon, kuyruğun önündeki öğrenciyi sınav için çağırır ve kuyruktan çıkarır.
+    if (q->front == NULL): Eğer kuyruk boşsa, bir hata mesajı yazdırılır.
+    Student* temp = q->front;: Kuyruğun önündeki öğrenci geçici bir işaretçiye (temp) atanır.
+    q->front = q->front->next;: Kuyruğun başı, bir sonraki öğrenciye yönlendirilir.
+    if (q->front == NULL): Eğer kuyruğun başı NULL olduysa, yani kuyruk boşsa, rear da NULL yapılır.
+    printf("Student %s has taken the exam\n", temp->name);: Öğrencinin adı yazdırılır ve bu öğrenci sınavı almıştır.
+    free(temp);: Kuyruktan çıkarılan öğrenci için ayrılan bellek serbest bırakılır.
+
+7. main Fonksiyonu:
+
+int main() {
+    Queue* q = createQueue();
+    int choice;
+    char name[50];
+
+    while (1) {
+        printf("1. Add student to queue\n");
+        printf("2. Call next student for exam\n");
+        printf("3. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                printf("Enter student name: ");
+                scanf("%s", name);
+                enqueue(q, name);
+                break;
+            case 2:
+                dequeue(q);
+                break;
+            case 3:
+                exit(0);
+            default:
+                printf("Invalid choice\n");
+        }
+    }
+
+    return 0;
+}
+
+    Queue* q = createQueue();: Yeni bir kuyruk nesnesi oluşturulur.
+    **int choice; ve char name[50];: Kullanıcının seçimini ve öğrenci adını tutan değişkenler.
+    Sonsuz bir döngü (while(1)), kullanıcıdan giriş almak için çalışır.
+    printf("1. Add student to queue\n");: Kullanıcıya seçenekler sunulur.
+    scanf("%d", &choice);: Kullanıcıdan seçim alınır.
+    switch (choice): Seçime göre işlem yapılır:
+        case 1: Öğrenci eklemek için adı alır ve enqueue fonksiyonunu çağırır.
+        case 2: Kuyruğun önündeki öğrenciyi çağırır (sınav için).
+        case 3: Programı sonlandırır.
+        default: Geçersiz bir seçenek girilirse hata mesajı verir.
+
+Programın Çalışma Mantığı:
+
+    Program, kullanıcıdan sürekli olarak giriş alır ve bu girişlere göre öğrenci ekler, öğrenci çağırır veya çıkış yapar.
+    Kullanıcı, "1" seçeneğini seçtiğinde öğrenci adı alınıp kuyruğa eklenir.
+    Kullanıcı, "2" seçeneğini seçtiğinde kuyruğun başındaki öğrenci sınav için çağrılır ve kuyruktan çıkarılır.
+    "3" seçeneği ile program sonlanır.
+
+Sonuç:
+
+Bu program, temelde bir kuyruk veri yapısını kullanarak öğrencilerin sınav için sıralarını düzenler. Kuyruk veri yapısı, ilk giren ilk çıkar (FIFO) prensibine göre çalışır.
